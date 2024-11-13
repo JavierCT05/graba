@@ -1,27 +1,5 @@
-import logo from './logo.svg';
 import './App.css';
 import React, { useState } from 'react';
-
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edith 🐧 🥶🥶
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
 
 // En el archivo de React donde deseas enviar datos
 const { ipcRenderer } = window.require('electron');
@@ -43,7 +21,7 @@ function FormularioAgregar() {
   };
 
   return (
-    <div>
+    <div className="formulario-agregar">
       <input
         type="text"
         value={nombre}
@@ -55,4 +33,30 @@ function FormularioAgregar() {
   );
 }
 
-export default FormularioAgregar;
+function ImagenConFormulario() {
+  // Estado para controlar la visibilidad del formulario
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
+  // Función para manejar el clic en la imagen
+  const handleImageClick = () => {
+    setMostrarFormulario(true); // Muestra el formulario cuando se hace clic en la imagen
+  };
+
+  return (
+    <div>
+      {/* Imagen que, al hacer clic, mostrará el formulario */}
+      {!mostrarFormulario && (
+      <img
+        src="https://media.printables.com/media/prints/375908/images/3160471_a5e402d6-017e-4791-b62c-500ea716844a/thumbs/cover/800x800/jpeg/020ae98af02c4b6da2c8d1e1584cded3.webp"  // Asegúrate de poner la ruta correcta de la imagen
+        alt="Imagen de Agregar Documento"
+        className="imagen-agregar"  // Asigna la clase CSS aquí
+          onClick={handleImageClick}
+      />
+      )}
+      {/* Condicionalmente rend erizamos el formulario solo si 'mostrarFormulario' es true */}
+      {mostrarFormulario && <FormularioAgregar />}
+    </div>
+  );
+}
+
+export default ImagenConFormulario;

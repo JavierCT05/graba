@@ -36,3 +36,45 @@
     transform: rotate(360deg);
   }
 }
+
+.imagen-agregar {
+  cursor: pointer;
+  width: 300px;   /* Ajusta el tamaño de la imagen */
+  height: 300px;  /* Ajusta el tamaño de la imagen */
+  position: absolute; /* Posiciona la imagen de manera absoluta */
+  top: 50%;        /* Posiciona la imagen a la mitad de la altura de la ventana */
+  left: 50%;       /* Posiciona la imagen a la mitad del ancho de la ventana */
+  transform: translate(-50%, -50%); /* La centra */
+}
+
+
+/* Estilos para el formulario */
+.formulario-agregar {
+  width: 400px;         /* Establece un tamaño fijo para el formulario */
+  margin: 0 auto;       /* Centra el formulario horizontalmente */
+  padding: 20px;        /* Espaciado interno del formulario */
+  background-color: #f4f4f4;  /* Fondo del formulario */
+  border-radius: 8px;   /* Bordes redondeados */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;            /* Espaciado entre los elementos del formulario */
+}
+
+.formulario-agregar input,
+.formulario-agregar button {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.formulario-agregar button {
+  background-color: #4CAF50; /* Color del botón */
+  color: white;             /* Color del texto del botón */
+  cursor: pointer;
+}
+
+.formulario-agregar button:hover {
+  background-color: #45a049; /* Cambia el color al pasar el mouse sobre el botón */
+}
