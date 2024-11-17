@@ -61,20 +61,4 @@
   gap: 10px;            /* Espaciado entre los elementos del formulario */
 }
 
-.formulario-agregar input,
-.formulario-agregar button {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 
-.formulario-agregar button {
-  background-color: #4CAF50; /* Color del botón */
-  color: white;             /* Color del texto del botón */
-  cursor: pointer;
-}
-
-.formulario-agregar button:hover {
-  background-color: #45a049; /* Cambia el color al pasar el mouse sobre el botón */
-}
