@@ -62,3 +62,20 @@
 }
 
 
+.formulario-agregar input,
+.formulario-agregar button {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.formulario-agregar button {
+  background-color: #4CAF50; 
+  color: white;            
+  cursor: pointer;
+}
+
+.formulario-agregar button:hover {
+  background-color: #45a049; 
+}
