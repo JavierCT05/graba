@@ -4,7 +4,13 @@ import React, { useState } from 'react';
 // En el archivo de React donde deseas enviar datos
 const { ipcRenderer } = window.require('electron');
 
+const enviarDocumento = (documento) => {
+  ipcRenderer.send('agregar-documento', documento);
 
+  ipcRenderer.once('respuesta-agregar-documento', (event, message) => {
+    console.log(message);
+  });
+};
 
 function FormularioAgregar() {
   const [nombre, setNombre] = useState('');
