@@ -37,6 +37,7 @@
     // Estado para controlar qué sección se muestra
     const [seccionVisible, setSeccionVisible] = useState(null);
 
+<<<<<<< HEAD
     // Función para manejar el clic en las imágenes
     const handleImageClick = (seccion) => {
       setSeccionVisible(seccion); // Establece qué sección mostrar
@@ -90,3 +91,6 @@
 
 
   export default ImagenConFormulario;
+=======
+export default ImagenConFormulario;
+>>>>>>> 88c3d25c2bf6f05085d1f51fe89fb223bc4c44ec
