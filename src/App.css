@@ -1,69 +1,242 @@
-/* Estilos generales para el contenedor de imágenes */
-.contenedor-imagenes {
-  display: flex;
-  justify-content: space-around; /* Espacia las imágenes de forma equitativa */
-  align-items: center; /* Centra las imágenes verticalmente */
-  margin-top: 20px; /* Puedes ajustar este margen si es necesario */
-}
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap");
 
-/* Estilos comunes para todas las imágenes */
-.imagen-izquierda, .imagen-central, .imagen-derecha {
-  max-width: 150px; /* Ajusta el tamaño de las imágenes */
-  cursor: pointer;  /* Cambia el cursor para indicar que es interactivo */
-  transition: transform 0.3s ease; /* Añade una transición suave */
-  margin: 0 10px; /* Espaciado entre las imágenes */
-}
-
-.imagen-izquierda:hover, .imagen-central:hover, .imagen-derecha:hover {
-  transform: scale(1.1); /* Agranda la imagen cuando se pasa el cursor */
-}
-
-/* Estilos para el formulario */
-.formulario-agregar {
-  width: 400px;         /* Establece un tamaño fijo para el formulario */
-  margin: 0 auto;       /* Centra el formulario horizontalmente */
-  padding: 20px;        /* Espaciado interno del formulario */
-  background-color: #f4f4f4;  /* Fondo del formulario */
-  border-radius: 8px;   /* Bordes redondeados */
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  display: flex;
-  flex-direction: column;
-  gap: 10px;            /* Espaciado entre los elementos del formulario */
-}
-
-
-.formulario-agregar input,
-.formulario-agregar button {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.formulario-agregar button {
-  background-color: #4CAF50; 
-  color: white;            
-  cursor: pointer;
-}
-
-.formulario-agregar button:hover {
-<<<<<<< HEAD
-  background-color: #45a049; /* Cambia el color al pasar el mouse sobre el botón */
-}
-
-/* Estilos para las secciones de información y contacto */
-.informacion-seccion, .contacto-seccion {
+body {
+  font-family: "Poppins", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f9;
+  color: #333;
   text-align: center;
+}
+
+h1 {
+  font-weight: 600;
+  color: #4caf50;
   margin-top: 20px;
 }
 
-h2 {
+.botones {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background-color: #2196f3; /* Azul por defecto */
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button:hover {
+  background-color: #1976d2;
+  transform: scale(1.05);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 5px rgba(33, 150, 243, 0.7);
+}
+
+button.activo {
+  background-color: #4caf50; /* Verde para botón activo */
+}
+
+.formulario-agregar {
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+form label {
+  font-weight: 600;
+  margin-bottom: 8px;
   color: #333;
 }
 
-p {
-  color: #666;
-=======
-  background-color: #45a049; 
->>>>>>> 88c3d25c2bf6f05085d1f51fe89fb223bc4c44ec
+form input,
+form select {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #333;
+  background-color: #fafafa;
+}
+
+form input:focus,
+form select:focus {
+  border-color: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+form button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+form button:hover {
+  background-color: #45a049;
+}
+
+form select {
+  background-color: #fff;
+  cursor: pointer;
+}
+
+form select:focus {
+  outline: none;
+  border-color: #4caf50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+}
+
+.grupo-articulos {
+  margin-bottom: 30px;
+}
+
+.toggle-text {
+  font-size: 18px;
+  color: #4caf50;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.toggle-text:hover {
+  color: #45a049;
+}
+
+.tabla-articulos {
+  width: 100%;
+  border-collapse: collapse;
+  max-height: 300px; /* Altura máxima para la tabla */
+  overflow-y: auto; /* Permite el desplazamiento si el contenido es largo */
+}
+
+.tabla-articulos th,
+.tabla-articulos td {
+  padding: 12px;
+  text-align: left;
+}
+
+.tabla-articulos th {
+  background-color: #f4f4f9;
+  font-weight: 600;
+}
+
+.tabla-articulos tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.tabla-articulos tr:hover {
+  background-color: #e0e0e0;
+}
+
+/* Contenedor para los artículos con scroll */
+.informacion-seccion {
+  margin-top: 30px;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: left;
+  max-height: 600px; /* Altura máxima para la sección */
+  overflow-y: auto; /* Barra de desplazamiento vertical */
+}
+
+.informacion-seccion ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.informacion-seccion li {
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #333;
+}
+
+.grupos-contenedor {
+  max-height: 400px; /* Altura máxima para los grupos */
+  overflow-y: auto; /* Agrega una barra de desplazamiento si el contenido es demasiado largo */
+  padding-right: 10px;
+}
+
+/* Estilo para los botones de paginación si decides usarlos */
+.paginacion {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.paginacion button {
+  padding: 10px 20px;
+  background-color: #2196f3;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.paginacion button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.paginacion button:hover {
+  background-color: #1976d2;
+}
+
+.paginacion span {
+  margin: 0 10px;
+  font-size: 16px;
+}
+
+/* Contenedor de imágenes y sus efectos */
+.contenedor-imagenes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.imagen-izquierda,
+.imagen-central,
+.imagen-derecha {
+  width: 250px;
+  height: auto;
+  margin: 10px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: transform 0.2s ease;
+}
+
+.imagen-izquierda:hover,
+.imagen-central:hover,
+.imagen-derecha:hover {
+  transform: scale(1.05);
 }
