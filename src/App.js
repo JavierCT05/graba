@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import { isContentEditable } from '@testing-library/user-event/dist/utils';
 const { ipcRenderer } = window.require('electron');
 
-// Usamos la imagen proporcionada para los botones
-const imagenBoton = 'https://images.ctfassets.net/ihx0a8chifpc/GTlzd4xkx4LmWsG1Kw1BB/ad1834111245e6ee1da4372f1eb5876c/placeholder.com-1280x720.png?w=1920&q=60&fm=webp';
-
 function App() {
-  const [seccionVisible, setSeccionVisible] = useState(null);
   const [identificador, setIdentificador] = useState('');
   const [nombre, setNombre] = useState('');
   const [unidadMedida, setUnidadMedida] = useState('pieza');
@@ -21,6 +18,45 @@ function App() {
   const [carrito, setCarrito] = useState([]);
   const [articulosVenta, setArticulosVenta] = useState([]);
   const [totalVenta, setTotalVenta] = useState(0);
+  const [seccionVisible, setSeccionVisible] = useState(null);
+  const [ventas, setVentas] = useState([]);
+  const [ventasAgrupadas, setVentasAgrupadas] = useState({});
+  const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
+
+  const obtenerVentas = () => {
+    ipcRenderer.send('obtener-ventas');
+    ipcRenderer.once('respuesta-obtener-ventas', (event, ventasRecibidas) => {
+      setVentas(ventasRecibidas);
+      agruparVentas(ventasRecibidas); // Agrupar las ventas
+    });
+  };
+
+  // Función para agrupar ventas por `ventaId`
+  const agruparVentas = (ventas) => {
+    const agrupadas = {};
+    ventas.forEach((venta) => {
+      if (!agrupadas[venta.ventaId]) {
+        agrupadas[venta.ventaId] = [];
+      }
+      agrupadas[venta.ventaId].push(venta);
+    });
+    setVentasAgrupadas(agrupadas);
+  };
+
+  // Al hacer clic en un `Venta ID`, se muestra o se oculta la información de la venta
+  const toggleVentaDetalles = (ventaId) => {
+    if (ventaSeleccionada === ventaId) {
+      setVentaSeleccionada(null); // Si ya está seleccionado, ocultarlo
+    } else {
+      setVentaSeleccionada(ventaId); // Si no está seleccionado, mostrarlo
+    }
+  };
+
+  useEffect(() => {
+    if (seccionVisible === 'venta') {
+      obtenerVentas(); // Cargar las ventas cuando se entra a la sección "venta"
+    }
+  }, [seccionVisible]);
 
   const handleImageClick = (seccion) => {
     setSeccionVisible(seccion);
@@ -102,14 +138,24 @@ function App() {
       }
     });
   };
-
+  const agruparVentasPorId = (ventas) => {
+    const agrupadas = {};
+    ventas.forEach((venta) => {
+      if (!agrupadas[venta.ventaId]) {
+        agrupadas[venta.ventaId] = [];
+      }
+      agrupadas[venta.ventaId].push(venta);
+    });
+    return agrupadas;
+  };
+  
   const finalizarVenta = () => {
     const ventaId = `venta-${Date.now()}`;
     const ventaDetalles = carrito.map((item) => ({
       articuloId: item._id,
       descripcion: item.descripcion,
-      cantidad: item.cantidad,
-      precio: item.precio,
+      cantidad: Number(item.cantidad),
+      precio: Number(item.precio),
       total: item.total,
     }));
 
@@ -139,7 +185,12 @@ function App() {
       setPaginaActual((prev) => prev + 1);
     }
   };
-
+  useEffect(() => {
+    if (seccionVisible === 'venta') {
+      obtenerVentas(); // Cargar las ventas cuando se entra a la sección "venta"
+    }
+  }, [seccionVisible]);
+  
   return (
     <div className="contenedor-imagenes">
       <div className="botones">
@@ -164,6 +215,12 @@ function App() {
           alt="Venta"
           className={seccionVisible === 'contacto' ? 'activo' : ''}
           onClick={() => handleImageClick('contacto')}
+        />
+        <img
+          src={'https://cdn-icons-png.flaticon.com/512/591/591815.png'}
+          alt="Ventas"
+          className={seccionVisible === 'venta' ? 'activo' : ''}
+          onClick={() => handleImageClick('venta')}
         />
       </div>
 
@@ -387,8 +444,53 @@ function App() {
     </div>
   </div>
 )}
+{seccionVisible === 'venta' && (
+   <div className="ventas-seccion">
+      <h2>--------------------------VENTAS--------------------------</h2>
+      <div className="lista-ventas">
+        {Object.keys(ventasAgrupadas).length === 0 ? (
+          <p>No se encontraron ventas registradas.</p>
+        ) : (
+          // Mostrar las ventas agrupadas por `ventaId`
+          Object.entries(ventasAgrupadas).map(([ventaId, grupo]) => (
+            <div key={ventaId} className="grupo-venta">
+              <h3
+                className="venta-id"
+                onClick={() => toggleVentaDetalles(ventaId)}
+              >
+                Venta ID: {ventaId}
+              </h3>
+              {ventaSeleccionada === ventaId && (
+                <div className="detalles-venta">
+                  <p>Total Venta: ${grupo.reduce((total, venta) => total + venta.totalVenta, 0).toFixed(2)}</p>
+                  <ul>
+                    {grupo.map((venta, index) => (
+                      <li key={index}>
+                        <strong>{venta.ventaId}</strong> - Total: ${venta.totalVenta.toFixed(2)}
+                        <ul>
+                          {venta.ventaDetalles.map((detalle, i) => (
+                            <li key={i}>
+                              {detalle.descripcion} - Cantidad: {detalle.cantidad} - Precio: {detalle.precio} - Total: {detalle.cantidad*detalle.precio}
+                            </li>
+                          ))}
+                        </ul>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+
+  )}
+
+
 
     </div>
+    
   );
 }
 
