@@ -15,9 +15,20 @@ function App() {
   const [cargando, setCargando] = useState(false);
   const [totalPaginas, setTotalPaginas] = useState(1);
   const [articulosVisibles, setArticulosVisibles] = useState({});
+  const [carrito, setCarrito] = useState([]);
+  const [articulosVenta, setArticulosVenta] = useState([]);
+  const [totalVenta, setTotalVenta] = useState(0);
 
   const handleImageClick = (seccion) => {
     setSeccionVisible(seccion);
+  
+    if (seccion === 'contacto') {
+      setArticulos([]); // Limpia los artículos para evitar duplicados
+      consultarArticulos(1); // Carga los artículos desde la página 1
+      setArticulosVenta([]);
+      setTotalVenta(0);
+      setCarrito([]); // Limpia el carrito al entrar a "Venta"
+    }
   };
 
   const manejarEnvio = () => {
@@ -30,41 +41,34 @@ function App() {
   };
 
   const consultarArticulos = (pagina = 1) => {
-    if (pagina > totalPaginas || cargando) return; // No hacer nada si ya estamos en la última página o si está cargando
-
+    if (pagina > totalPaginas || cargando) return;
+  
     setCargando(true);
-    console.log(`Consultando artículos, página: ${pagina}`);
     ipcRenderer.send('consultar-documentos', pagina, 10);
-    
+  
     ipcRenderer.once('respuesta-consultar-documentos', (event, { documents, totalPages }) => {
-      console.log("Respuesta recibida:", documents);
-      if (documents && documents.length > 0) {
-        // Evitar agregar artículos duplicados
+      if (documents) {
         setArticulos((prevArticulos) => {
-          const nuevosArticulos = documents.filter((articulo) => 
+          const nuevosArticulos = documents.filter((articulo) =>
             !prevArticulos.some((prev) => prev._id === articulo._id)
           );
           return [...prevArticulos, ...nuevosArticulos];
         });
         setTotalPaginas(totalPages);
-        setPaginaActual(pagina);
-      } else {
-        console.log('No se encontraron documentos');
       }
       setCargando(false);
     });
   };
+  
 
   const agruparArticulosPorNombre = (articulos) => {
     const agrupados = {};
-
     articulos.forEach((articulo) => {
       if (!agrupados[articulo.nombre]) {
         agrupados[articulo.nombre] = [];
       }
       agrupados[articulo.nombre].push(articulo);
     });
-
     return agrupados;
   };
 
@@ -75,8 +79,53 @@ function App() {
     }));
   };
 
+  const agregarAlCarrito = (articulo) => {
+    setCarrito((prevCarrito) => {
+      const existente = prevCarrito.find((item) => item._id === articulo._id);
+      if (existente) {
+        return prevCarrito.map((item) =>
+          item._id === articulo._id
+            ? {
+                ...item,
+                cantidad: item.cantidad + 1,
+                total: parseFloat((item.cantidad + 1) * item.precio),
+              }
+            : item
+        );
+      } else {
+        return [
+          ...prevCarrito,
+          { ...articulo, cantidad: 1, total: parseFloat(articulo.precio) },
+        ];
+      }
+    });
+  };
+
+  const finalizarVenta = () => {
+    // Generar ID único para la venta (por ejemplo, usando timestamp)
+    const ventaId = `venta-${Date.now()}`;
+  
+    // Creamos un objeto con los detalles de la venta
+    const ventaDetalles = carrito.map((item) => ({
+      articuloId: item._id,
+      nombre: item.nombre,
+      cantidad: item.cantidad,
+      precio: item.precio,
+      total: item.total,
+    }));
+  
+    // Enviar los detalles de la venta al backend
+    ipcRenderer.send('registrar-venta', { ventaId, ventaDetalles, totalVenta });
+  
+    // Limpiar carrito y artículos de venta
+    setArticulosVenta(ventaDetalles);
+    setTotalVenta(0);
+    setCarrito([]);
+  };
+  
+
   useEffect(() => {
-    if (seccionVisible === "informacion") {
+    if (seccionVisible === 'informacion') {
       consultarArticulos(paginaActual);
     }
   }, [seccionVisible, paginaActual]);
@@ -92,32 +141,32 @@ function App() {
     <div className="contenedor-imagenes">
       <div className="botones">
         <button
-          className={seccionVisible === "formulario" ? "activo" : ""}
-          onClick={() => handleImageClick("formulario")}
+          className={seccionVisible === 'formulario' ? 'activo' : ''}
+          onClick={() => handleImageClick('formulario')}
         >
-          Formulario
+          Agregar Articulo
         </button>
         <button
-          className={seccionVisible === "informacion" ? "activo" : ""}
+          className={seccionVisible === 'informacion' ? 'activo' : ''}
           onClick={() => {
-            handleImageClick("informacion");
-            setArticulos([]); // Reinicia los artículos al cambiar a información
+            handleImageClick('informacion');
+            setArticulos([]);
             consultarArticulos(1);
           }}
         >
-          Información
+          Inventario
         </button>
         <button
-          className={seccionVisible === "contacto" ? "activo" : ""}
-          onClick={() => handleImageClick("contacto")}
+          className={seccionVisible === 'contacto' ? 'activo' : ''}
+          onClick={() => handleImageClick('contacto')}
         >
-          Contacto
+          Venta
         </button>
       </div>
 
-      {seccionVisible === "formulario" && (
+      {seccionVisible === 'formulario' && (
         <div className="formulario-agregar">
-          <h2>Formulario para agregar inventario</h2>
+          <h2>Inserte los datos para dar de Alta el producto</h2>
           <form>
             <label>Identificador:</label>
             <input
@@ -163,14 +212,16 @@ function App() {
               onChange={(e) => setPrecio(e.target.value)}
               placeholder="Precio"
             />
-            <button type="button" onClick={manejarEnvio}>Agregar a Inventario</button>
+            <button type="button" onClick={manejarEnvio}>
+              Agregar a Inventario
+            </button>
           </form>
         </div>
       )}
 
-      {seccionVisible === "informacion" && (
+      {seccionVisible === 'informacion' && (
         <div className="informacion-seccion" onScroll={handleScroll}>
-          <h2>Lista de Artículos</h2>
+          <h2>--------------------------Lista de Artículos--------------------------</h2>
           {cargando ? (
             <p>Cargando...</p>
           ) : (
@@ -180,11 +231,11 @@ function App() {
               ) : (
                 Object.entries(agruparArticulosPorNombre(articulos)).map(([nombre, grupo]) => (
                   <div key={nombre} className="grupo-articulos">
-                    <span 
+                    <span
                       className="toggle-text"
                       onClick={() => toggleVisibilidadGrupo(nombre)}
                     >
-                      {articulosVisibles[nombre] ? "Ocultar" : "Mostrar"} {nombre}
+                      {articulosVisibles[nombre] ? 'Ocultar' : 'Mostrar'} {nombre}
                     </span>
                     {articulosVisibles[nombre] && (
                       <table className="tabla-articulos">
@@ -216,10 +267,51 @@ function App() {
         </div>
       )}
 
-      {seccionVisible === "contacto" && (
-        <div className="contacto-seccion">
-          <h2>Contacto</h2>
-          <p>Aquí puedes encontrar información para ponerte en contacto con nosotros.</p>
+      {seccionVisible === 'contacto' && (
+        <div className="venta-seccion">
+          <h2>Realizar Venta</h2>
+          <div className="lista-articulos">
+            <h3>Seleccionar Artículos</h3>
+            {cargando ? (
+              <p>Cargando...</p>
+            ) : (
+              <ul>
+                {articulos.map((articulo) => (
+                  <li key={articulo._id}>
+                    {articulo.nombre} - ${articulo.precio}
+                    <button onClick={() => agregarAlCarrito(articulo)}>
+                      Agregar al Carrito
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          <div className="carrito">
+            <h3>Carrito de Compra</h3>
+            <table className="tabla-carrito">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Cantidad</th>
+                  <th>Precio</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {carrito.map((item) => (
+                  <tr key={item._id}>
+                    <td>{item.nombre}</td>
+                    <td>{item.cantidad}</td>
+                    <td>${item.precio}</td>
+                    <td>${item.total.toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button onClick={finalizarVenta}>Finalizar Venta</button>
+          </div>
         </div>
       )}
     </div>

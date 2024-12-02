@@ -1,6 +1,5 @@
-const { app, BrowserWindow } = require('electron');
-const { MongoClient } = require('mongodb');
-const { ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { MongoClient, ObjectId } = require('mongodb');
 
 let db; // Variable global para la base de datos
 
@@ -29,7 +28,8 @@ function createWindow() {
     },
   });
 
-  win.loadURL('http://localhost:3000'); // Asegúrate de que tu servidor React esté activo en localhost:3000
+  // Asegúrate de que tu servidor React esté corriendo en http://localhost:3000
+  win.loadURL('http://localhost:3000');
 }
 
 // Insertar un documento en la colección INVENTARIO
@@ -62,14 +62,12 @@ ipcMain.on('consultar-documentos', async (event, pagina, limit) => {
 
   try {
     // Usar la función queryDocuments para obtener los documentos paginados
-    const documents = await queryDocuments('INVENTARIO', skip, limit); // Llamada a queryDocuments
+    const documents = await queryDocuments('INVENTARIO', skip, limit);
     console.log(`Documentos encontrados: ${documents.length}`);
 
     // Contar el total de documentos en la colección
     const total = await db.collection('INVENTARIO').countDocuments({});
-    const totalPages = Math.ceil(total / limit); // Cálculo del número total de páginas
-
-    console.log(`Total de documentos: ${total}, Total de páginas: ${totalPages}`);
+    const totalPages = Math.ceil(total / limit);
 
     // Enviar la respuesta con los documentos y el total de páginas
     event.reply('respuesta-consultar-documentos', { documents, totalPages });
@@ -82,11 +80,38 @@ ipcMain.on('consultar-documentos', async (event, pagina, limit) => {
 // Canal para agregar documento
 ipcMain.on('agregar-documento', async (event, documento) => {
   try {
-    await addDocument("INVENTARIO", documento); // Colección: INVENTARIO
+    await addDocument("INVENTARIO", documento);
     event.reply('respuesta-agregar-documento', 'Documento agregado exitosamente');
   } catch (error) {
     console.error("Error al agregar documento:", error);
     event.reply('respuesta-agregar-documento', 'Error al agregar documento');
+  }
+});
+
+// Canal para registrar venta (modificado para usar MongoDB directamente)
+ipcMain.on('registrar-venta', async (event, { ventaId, ventaDetalles, totalVenta }) => {
+  try {
+    // Convertir articuloId a ObjectId si es un Buffer
+    ventaDetalles.forEach(detalle => {
+      if (detalle.articuloId && Buffer.isBuffer(detalle.articuloId)) {
+        detalle.articuloId = new ObjectId(detalle.articuloId);
+      }
+    });
+
+    // Crear un nuevo documento de venta
+    const nuevaVenta = {
+      ventaId,
+      ventaDetalles,
+      totalVenta,
+    };
+
+    // Insertar la venta en la colección de INVENTARIO (o una colección específica para ventas)
+    await addDocument('ventas', nuevaVenta);
+    console.log('Venta registrada exitosamente');
+    event.reply('respuesta-registrar-venta', 'Venta registrada exitosamente');
+  } catch (error) {
+    console.error('Error al registrar la venta:', error);
+    event.reply('respuesta-registrar-venta', 'Error al registrar la venta');
   }
 });
 
