@@ -7,6 +7,11 @@ body {
   background-color: #f4f4f9;
   color: #333;
   text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  height: 100vh;
 }
 
 h1 {
@@ -16,10 +21,46 @@ h1 {
 }
 
 .botones {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Tres columnas */
+  grid-template-rows: auto auto; /* Dos filas */
+  gap: 20px;
+  justify-items: center;
+  max-width: 1200px; /* Limita el tamaño máximo del contenedor */
+  width: 100%; /* 100% del ancho disponible */
+  margin: 20px 0; /* Añade márgenes */
+}
+
+.botones img {
+  width: 250px; /* Aumenta considerablemente el tamaño de las imágenes */
+  height: auto;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  border-radius: 8px;
+}
+
+.botones img:hover {
+  transform: scale(1.1); /* Aumento del tamaño al hacer hover */
+}
+
+/* Imagen 4 se coloca en la segunda fila y en la columna central */
+.botones img:nth-child(4) {
+  grid-column: 2 / 3; /* Coloca la imagen en la segunda columna */
+  margin-top: 10px; /* Alineación ajustada */
+}
+
+/* Asegura que las otras tres imágenes se distribuyan en la primera fila */
+.botones img:nth-child(1),
+.botones img:nth-child(2),
+.botones img:nth-child(3) {
+  grid-column: span 1;
+}
+
+body > .botones {
   justify-content: center;
-  gap: 15px;
-  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 button {
@@ -48,6 +89,7 @@ button.activo {
   background-color: #4caf50; /* Verde para botón activo */
 }
 
+/* Estilos para el formulario de agregar */
 .formulario-agregar {
   max-width: 600px;
   margin: 20px auto;
@@ -117,6 +159,7 @@ form select:focus {
 .grupo-articulos {
   margin-bottom: 30px;
 }
+
 .toggle-text {
   font-size: 18px;
   color: #4caf50;
@@ -154,7 +197,7 @@ form select:focus {
   background-color: #e0e0e0;
 }
 
-/* Contenedor para los artículos con scroll */
+/* Estilo para los artículos con scroll */
 .informacion-seccion {
   margin-top: 30px;
   padding: 20px;
@@ -215,7 +258,7 @@ form select:focus {
   font-size: 16px;
 }
 
-/* Contenedor de imágenes y sus efectos */
+/* Estilo para las imágenes */
 .contenedor-imagenes {
   display: flex;
   flex-direction: column;
@@ -228,7 +271,7 @@ form select:focus {
 .imagen-derecha {
   width: 250px;
   height: auto;
-  margin: 10px;
+  margin: 100px;
   cursor: pointer;
   border-radius: 8px;
   transition: transform 0.2s ease;
@@ -238,4 +281,42 @@ form select:focus {
 .imagen-central:hover,
 .imagen-derecha:hover {
   transform: scale(1.05);
+}
+
+/* Estilos para la venta */
+.venta {
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.venta h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #4caf50;
+}
+
+.venta p {
+  font-size: 18px;
+  color: #333;
+}
+
+.venta button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.venta button:hover {
+  background-color: #45a049;
 }

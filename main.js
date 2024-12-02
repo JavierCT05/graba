@@ -38,7 +38,6 @@ async function addDocument(collectionName, document) {
     // Asegurarnos de que cantidad y precio sean números
     document.cantidad = Number(document.cantidad);  // Convertir a número
     document.precio = Number(document.precio);  // Convertir a número
-    console.log(document);
     // Verificar si la conversión fue exitosa
     if (isNaN(document.cantidad) || isNaN(document.precio)) {
       throw new Error('Cantidad o Precio no son valores numéricos válidos');
@@ -153,6 +152,29 @@ ipcMain.on('registrar-venta', async (event, { ventaId, ventaDetalles, totalVenta
     session.abortTransaction();
     session.endSession();
     event.reply('respuesta-registrar-venta', 'Error al registrar la venta');
+  }
+});
+// Canal para aumentar la cantidad de artículo
+ipcMain.on('aumentar-articulo', async (event, { descripcion, cantidadAumentada }) => {
+  try {
+    // Asegurarse de que la cantidad a aumentar sea un número
+    cantidadAumentada = Number(cantidadAumentada);
+
+    if (isNaN(cantidadAumentada)) {
+      event.reply('respuesta-aumentar-articulo', 'Cantidad no es válida');
+      return;
+    }
+
+    // Actualizar el inventario: Aumentar la cantidad en base a la descripción
+    const result = await db.collection('INVENTARIO').updateOne(
+      { descripcion },  // Buscamos el artículo por descripción
+      { $inc: { cantidad: cantidadAumentada } }  // Aumentamos la cantidad
+    );
+    console.log(`Artículo actualizado: ${descripcion}, Cantidad aumentada: ${cantidadAumentada}`);
+    event.reply('respuesta-aumentar-articulo', 'Cantidad aumentada exitosamente');
+  } catch (error) {
+    console.error('Error al aumentar artículo:', error);
+    event.reply('respuesta-aumentar-articulo', 'Error al aumentar la cantidad');
   }
 });
 
