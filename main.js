@@ -35,6 +35,15 @@ function createWindow() {
 // Insertar un documento en la colección INVENTARIO
 async function addDocument(collectionName, document) {
   try {
+    // Asegurarnos de que cantidad y precio sean números
+    document.cantidad = Number(document.cantidad);  // Convertir a número
+    document.precio = Number(document.precio);  // Convertir a número
+    console.log(document);
+    // Verificar si la conversión fue exitosa
+    if (isNaN(document.cantidad) || isNaN(document.precio)) {
+      throw new Error('Cantidad o Precio no son valores numéricos válidos');
+    }
+
     const collection = db.collection(collectionName);
     const result = await collection.insertOne(document);
     console.log("Documento insertado con ID:", result.insertedId);
@@ -80,6 +89,16 @@ ipcMain.on('consultar-documentos', async (event, pagina, limit) => {
 // Canal para agregar documento
 ipcMain.on('agregar-documento', async (event, documento) => {
   try {
+    // Asegurarnos de que cantidad y precio sean números
+    documento.cantidad = Number(documento.cantidad);  // Convertir a número
+    documento.precio = Number(documento.precio);  // Convertir a número
+
+    // Verificar si la conversión fue exitosa
+    if (isNaN(documento.cantidad) || isNaN(documento.precio)) {
+      event.reply('respuesta-agregar-documento', 'Cantidad o Precio no son valores numéricos válidos');
+      return;
+    }
+
     await addDocument("INVENTARIO", documento);
     event.reply('respuesta-agregar-documento', 'Documento agregado exitosamente');
   } catch (error) {
@@ -88,30 +107,77 @@ ipcMain.on('agregar-documento', async (event, documento) => {
   }
 });
 
-// Canal para registrar venta (modificado para usar MongoDB directamente)
+// Canal para registrar venta (modificado para actualizar inventario usando descripción)
 ipcMain.on('registrar-venta', async (event, { ventaId, ventaDetalles, totalVenta }) => {
-  try {
-    // Convertir articuloId a ObjectId si es un Buffer
-    ventaDetalles.forEach(detalle => {
-      if (detalle.articuloId && Buffer.isBuffer(detalle.articuloId)) {
-        detalle.articuloId = new ObjectId(detalle.articuloId);
-      }
-    });
+  const session = db.startSession(); // Iniciar una sesión de MongoDB para realizar la transacción
 
-    // Crear un nuevo documento de venta
+  try {
+    session.startTransaction(); // Comenzar la transacción
+
+    // Registrar la venta
     const nuevaVenta = {
       ventaId,
       ventaDetalles,
       totalVenta,
     };
 
-    // Insertar la venta en la colección de INVENTARIO (o una colección específica para ventas)
     await addDocument('ventas', nuevaVenta);
-    console.log('Venta registrada exitosamente');
+
+    // Reducir la cantidad de los artículos vendidos en el inventario
+    for (const detalle of ventaDetalles) {
+      const descripcion = detalle.descripcion; // Descripción del artículo
+      let cantidadVendida = Number(detalle.cantidad); // Convertir cantidadVendida a número
+
+      // Verificar si la cantidad es un número válido
+      if (isNaN(cantidadVendida)) {
+        throw new Error(`Cantidad inválida para el artículo ${descripcion}`);
+      }
+
+      // Reducir la cantidad del artículo utilizando la descripción
+      await db.collection('INVENTARIO').updateOne(
+        { descripcion },  // Buscamos el artículo por su descripción
+        { $inc: { cantidad: -cantidadVendida } },
+        { session }
+      );
+    }
+
+    // Confirmar la transacción si todo fue exitoso
+    await session.commitTransaction();
+    session.endSession();
+
+    console.log('Venta registrada y cantidad de inventario actualizada');
     event.reply('respuesta-registrar-venta', 'Venta registrada exitosamente');
   } catch (error) {
-    console.error('Error al registrar la venta:', error);
+    // Si hubo un error, hacer rollback de la transacción
+    console.error('Error al registrar la venta o actualizar inventario:', error);
+    session.abortTransaction();
+    session.endSession();
     event.reply('respuesta-registrar-venta', 'Error al registrar la venta');
+  }
+});
+
+// Canal para actualizar cantidad de artículo
+ipcMain.on('actualizar-articulo', async (event, { descripcion, cantidadVendida }) => {
+  try {
+    // Convertir cantidadVendida a número antes de actualizar
+    cantidadVendida = Number(cantidadVendida);
+
+    // Verificar si la cantidad es un número válido
+    if (isNaN(cantidadVendida)) {
+      event.reply('respuesta-actualizar-articulo', 'Cantidad no es válida');
+      return;
+    }
+
+    // Actualizar el inventario: Reducir la cantidad en base a la descripción
+    const result = await db.collection('INVENTARIO').updateOne(
+      { descripcion },  // Buscamos el artículo por descripción
+      { $inc: { cantidad: -cantidadVendida } }  // Reducimos la cantidad vendida
+    );
+    console.log(`Artículo actualizado: ${descripcion}, Cantidad reducida: ${cantidadVendida}`);
+    event.reply('respuesta-actualizar-articulo', 'Inventario actualizado correctamente');
+  } catch (error) {
+    console.error('Error al actualizar artículo:', error);
+    event.reply('respuesta-actualizar-articulo', 'Error al actualizar artículo');
   }
 });
 

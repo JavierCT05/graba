@@ -59,7 +59,6 @@ function App() {
       setCargando(false);
     });
   };
-  
 
   const agruparArticulosPorNombre = (articulos) => {
     const agrupados = {};
@@ -108,7 +107,7 @@ function App() {
     // Creamos un objeto con los detalles de la venta
     const ventaDetalles = carrito.map((item) => ({
       articuloId: item._id,
-      nombre: item.nombre,
+      descripcion: item.descripcion,  // Usamos la descripción para identificar el artículo
       cantidad: item.cantidad,
       precio: item.precio,
       total: item.total,
@@ -117,11 +116,21 @@ function App() {
     // Enviar los detalles de la venta al backend
     ipcRenderer.send('registrar-venta', { ventaId, ventaDetalles, totalVenta });
   
+    // Reducir la cantidad de los artículos vendidos en el inventario
+    ventaDetalles.forEach((item) => {
+      // Aquí estamos actualizando la base de datos, restando la cantidad vendida
+      ipcRenderer.send('actualizar-articulo', {
+        descripcion: item.descripcion,  // Buscamos por descripción
+        cantidadVendida: item.cantidad,
+      });
+    });
+  
     // Limpiar carrito y artículos de venta
     setArticulosVenta(ventaDetalles);
     setTotalVenta(0);
     setCarrito([]);
   };
+  
   
 
   useEffect(() => {
@@ -278,7 +287,7 @@ function App() {
               <ul>
                 {articulos.map((articulo) => (
                   <li key={articulo._id}>
-                    {articulo.nombre} - ${articulo.precio}
+                    {articulo.descripcion} - ${articulo.precio}
                     <button onClick={() => agregarAlCarrito(articulo)}>
                       Agregar al Carrito
                     </button>
@@ -302,7 +311,7 @@ function App() {
               <tbody>
                 {carrito.map((item) => (
                   <tr key={item._id}>
-                    <td>{item.nombre}</td>
+                    <td>{item.descripcion}</td>
                     <td>{item.cantidad}</td>
                     <td>${item.precio}</td>
                     <td>${item.total.toFixed(2)}</td>
